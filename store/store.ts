@@ -1,12 +1,10 @@
-// store/useCounterStore.js
 import { useReducer } from "react";
-import { counterReducer, initialState } from "./reducer";
+import { dashboardReducer, initialState } from "./reducer";
 
-// Custom hook to use counter store
-const useCounterStore = () => {
-  const [state, dispatch] = useReducer(counterReducer, initialState);
+const useDashboardStore = () => {
+  const [state, dispatch] = useReducer(dashboardReducer, initialState);
 
   return { state, dispatch };
 };
 
-export default useCounterStore;
+export default useDashboardStore;

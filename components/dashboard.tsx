@@ -21,23 +21,32 @@ import {
 } from "@mui/material";
 import fetchUserData from "apis/userApi";
 import fetchFirebaseSimulatorData from "apis/firebaseSimulatorApi";
-
-type Data = {
-  email: string;
-  name: string;
-};
+import useDashboardStore from "store/store";
+import {
+  setFirebaseData,
+  setFirebaseError,
+  setFirebaseLoading,
+  setFirebaseSimulatorData,
+  setFirebaseSimulatorError,
+  setFirebaseSimulatorLoading,
+} from "store/action";
+import { UserData } from "store/types";
 
 const Dashboard = () => {
   const router = useRouter();
+  const {
+    state: {
+      isFirebaseLoading,
+      isFirebaseSimulatorLoading,
+      firebaseUsers,
+      firebaseSimulatorUsers,
+      firebaseError,
+      firebaseSimulatorError,
+    },
+    dispatch,
+  } = useDashboardStore();
 
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseLoading, setFirebaseLoading] = useState(false);
-  const [firebaseSimulatorLoading, setFirebaseSimulator] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [firebaseData, setFirebaseData] = useState<Data[]>([]);
-  const [firebaseSimulatorData, setFirebaseSimulatorData] = useState<Data[]>(
-    []
-  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -52,38 +61,42 @@ const Dashboard = () => {
   }, [router]);
 
   const handleClickFirebase = async () => {
-    setFirebaseLoading(true);
-    setError("");
+    dispatch(setFirebaseLoading(true));
+    dispatch(setFirebaseError(""));
 
     try {
-      const fetchedData = await fetchUserData();
+      const userData = await fetchUserData();
       setTimeout(() => {
-        setFirebaseData(fetchedData as Data[]);
+        dispatch(setFirebaseData(userData as UserData[]));
       }, 1000);
     } catch (err) {
-      setError("Failed to fetch firebase data");
+      dispatch(setFirebaseError("Failed to fetch firebase data"));
     } finally {
       setTimeout(() => {
-        setFirebaseLoading(false);
+        dispatch(setFirebaseLoading(false));
       }, 1000);
     }
   };
 
   const handleClickFirebaseSimulator = async () => {
-    setFirebaseSimulator(true);
-    setError("");
+    dispatch(setFirebaseSimulatorLoading(true));
+    dispatch(setFirebaseSimulatorError(""));
 
     try {
       const fetchedData = await fetchFirebaseSimulatorData("dummyUserData");
 
       setTimeout(() => {
-        setFirebaseSimulatorData(fetchedData as Data[]);
+        dispatch(
+          setFirebaseSimulatorData(fetchedData as unknown as UserData[])
+        );
       }, 1000);
     } catch (err) {
-      setError("Failed to fetch firebase simulator data");
+      dispatch(
+        setFirebaseSimulatorError("Failed to fetch firebase simulator data")
+      );
     } finally {
       setTimeout(() => {
-        setFirebaseSimulator(false);
+        dispatch(setFirebaseSimulatorLoading(false));
       }, 1000);
     }
   };
@@ -108,26 +121,26 @@ const Dashboard = () => {
           sx={{ mt: 2 }}
           onClick={handleClickFirebase}
         >
-          {firebaseLoading ? (
+          {isFirebaseLoading ? (
             <CircularProgress size={24} color="inherit" />
           ) : (
             "Fetch Data"
           )}
         </Button>
 
-        {error && (
+        {firebaseError && (
           <Typography color="error" variant="body2" sx={{ marginBottom: 2 }}>
-            {error}
+            {firebaseError}
           </Typography>
         )}
 
-        {firebaseData.length > 0 && (
+        {firebaseUsers && firebaseUsers.length > 0 && (
           <div style={{ marginTop: "20px" }}>
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                   <TableRow>
-                    {Object.keys(firebaseData[0]).map((key) => (
+                    {Object.keys(firebaseUsers[0]).map((key) => (
                       <TableCell key={key}>
                         {key.charAt(0).toUpperCase() + key.slice(1)}
                       </TableCell>
@@ -135,7 +148,7 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {firebaseData.map((item, index) => (
+                  {firebaseUsers.map((item, index) => (
                     <TableRow key={index}>
                       {Object.values(item).map((value, idx) => (
                         <TableCell key={idx}>{value}</TableCell>
@@ -165,26 +178,26 @@ const Dashboard = () => {
           sx={{ mt: 2 }}
           onClick={handleClickFirebaseSimulator}
         >
-          {firebaseSimulatorLoading ? (
+          {isFirebaseSimulatorLoading ? (
             <CircularProgress size={24} color="inherit" />
           ) : (
             "Fetch Data From Firebase Simulator"
           )}
         </Button>
 
-        {error && (
+        {firebaseSimulatorError && (
           <Typography color="error" variant="body2" sx={{ marginBottom: 2 }}>
-            {error}
+            {firebaseSimulatorError}
           </Typography>
         )}
 
-        {firebaseSimulatorData.length > 0 && (
+        {firebaseSimulatorUsers && firebaseSimulatorUsers.length > 0 && (
           <div style={{ marginTop: "20px" }}>
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                   <TableRow>
-                    {Object.keys(firebaseSimulatorData[0]).map((key) => (
+                    {Object.keys(firebaseSimulatorUsers[0]).map((key) => (
                       <TableCell key={key}>
                         {key.charAt(0).toUpperCase() + key.slice(1)}
                       </TableCell>
@@ -192,7 +205,7 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {firebaseSimulatorData.map((item, index) => (
+                  {firebaseSimulatorUsers.map((item, index) => (
                     <TableRow key={index}>
                       {Object.values(item).map((value, idx) => (
                         <TableCell key={idx}>{value}</TableCell>

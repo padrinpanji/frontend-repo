@@ -7,7 +7,7 @@ const fetchFirebaseSimulatorData = async (routing: string) => {
       `${apiHost}${firebaseProjectID}/us-central1/${routing}`
     );
 
-    return await res.json();
+    return res.json();
   } catch (error) {
     console.error("Error fetching firebase simulator data: ", error);
     return [];
